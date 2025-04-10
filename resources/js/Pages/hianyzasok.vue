@@ -1,7 +1,6 @@
 <template>
-    Jegyek
+    Hianyzasok
 </template>
 <script>
 </script>
-<style>
-</style>
+<style></style>

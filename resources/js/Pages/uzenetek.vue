@@ -1,7 +1,7 @@
 <template>
-    Jegyek
+    Uzenetek
 </template>
 <script>
 </script>
-<style>
+<style scoped>
 </style>

@@ -1,5 +1,5 @@
 <template>
-    Jegyek
+    Kezdolap
 </template>
 <script>
 </script>
