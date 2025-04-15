@@ -9,20 +9,11 @@ class Teacher extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'address'];
+    protected $fillable = ['user_id', 'name', 'email', 'password', 'address'];
+
 
     public function user()
     {
-        return $this->belongsTo(User::class);
-    }
-
-    public function classes()
-    {
-        return $this->hasMany(Classes::class);
-    }
-
-    public function subjects()
-    {
-        return $this->hasMany(ClassSubject::class);
+        return $this->belongsToMany(User::class, 'student_teacher', 'teacher_id', 'user_id')->withTimestamps();
     }
 }

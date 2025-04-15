@@ -27,76 +27,51 @@ const submit = () => {
 
 <template>
   <Head title="Bejelentkezés" />
-<div class="bg-light min-vh-100 d-flex align-items-center justify-content-center">
-  <div class="container mt-5">
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h2 class="text-center mb-4">Bejelentkezés</h2>
+  <div class="bg-light min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-md-6">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h2 class="text-center mb-4">Bejelentkezés</h2>
 
-            <div v-if="status" class="alert alert-success">
-              {{ status }}
-            </div>
-
-            <form @submit.prevent="submit" v-if="!isLoggedIn">
-              <div class="mb-3">
-                <label for="email" class="form-label">Email cím</label>
-                <input
-                  id="email"
-                  v-model="form.email"
-                  type="email"
-                  class="form-control"
-                  required
-                  autofocus
-                />
+              <div v-if="status" class="alert alert-success">
+                {{ status }}
               </div>
 
-              <div class="mb-3">
-                <label for="password" class="form-label">Jelszó</label>
-                <input
-                  id="password"
-                  v-model="form.password"
-                  type="password"
-                  class="form-control"
-                  required
-                  autocomplete="current-password"
-                />
-              </div>
+              <form @submit.prevent="submit" v-if="!isLoggedIn">
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email cím</label>
+                  <input id="email" v-model="form.email" type="email" class="form-control" required autofocus />
+                </div>
 
-              <div class="mb-3 form-check">
-                <input
-                  class="form-check-input"
-                  id="remember"
-                  type="checkbox"
-                  v-model="form.remember"
-                />
-                <label class="form-check-label" for="remember">Emlékezz rám</label>
-              </div>
+                <div class="mb-3">
+                  <label for="password" class="form-label">Jelszó</label>
+                  <input id="password" v-model="form.password" type="password" class="form-control" required
+                    autocomplete="current-password" />
+                </div>
 
-              <button type="submit" class="btn btn-primary w-100">
-                Bejelentkezés
-              </button>
+                <div class="mb-3 form-check">
+                  <input class="form-check-input" id="remember" type="checkbox" v-model="form.remember" />
+                  <label class="form-check-label" for="remember">Emlékezz rám</label>
+                </div>
 
-              <div class="text-center mt-3">
-                <span>Nincs fiókod?</span>
-                <Link :href="route('register')" class="btn btn-link">Regisztráció</Link>
-              </div>
-            </form>
+                <button type="submit" class="btn btn-primary w-100">
+                  Bejelentkezés
+                </button>
 
-            <div v-else class="text-center">
-              <h4 class="mb-3">Üdvözlünk, bejelentkezve!</h4>
-              <button class="btn btn-danger" @click="logout">Kijelentkezés</button>
+                <div class="text-center mt-3">
+                  <span>Nincs fiókod?</span>
+                  <Link :href="route('register')" class="btn btn-link">Regisztráció</Link>
+                </div>
+              </form>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 

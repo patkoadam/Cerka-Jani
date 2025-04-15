@@ -15,7 +15,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role_id', 
+        'role_id',
+        'birth',
+        'contact',
+        'student_card',
+        'id_card',
     ];
 
     protected $hidden = [
@@ -28,26 +32,29 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    // 👉 Kapcsolat a Role modellel
     public function role()
     {
         return $this->belongsTo(Role::class);
     }
 
-    // 👉 Kapcsolat a Teacher modellel
-    public function teacher()
+    public function teachers()
     {
-        return $this->hasOne(Teacher::class);
-    }
-
-    // 👉 Kapcsolat a Student modellel
-    public function student()
-    {
-        return $this->hasOne(Student::class);
+        return $this->belongsToMany(Teacher::class, 'student_teacher', 'user_id', 'teacher_id')->withTimestamps();
     }
 
     public function events()
     {
         return $this->hasMany(Event::class);
+    }
+
+    public function grades()
+    {
+        return $this->hasMany(Grade::class);
+    }
+
+    public function classGroups()
+    {
+        return $this->belongsToMany(ClassGroup::class, 'class_group_student', 'user_id', 'class_group_id')
+            ->withTimestamps();
     }
 }
