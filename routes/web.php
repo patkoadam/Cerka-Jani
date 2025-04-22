@@ -50,12 +50,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/api/class-groups/{classGroupId}/students/{userId}', [ClassGroupController::class, 'delete'])->name('class-groups.students.delete');
     Route::get('/api/students', [ClassGroupController::class, 'indexStudents'])->name('students.index');
 
-    Route::post('/class-groups/{classGroupId}/schedules', [ClassGroupController::class, 'storeSchedule'])
-        ->name('class-group.schedules.store');
-
-    Route::get('/class-groups/{classGroupId}/schedules', [ClassGroupController::class, 'fetchSchedules'])
-        ->name('class-group.schedules.index');
-
 
     Route::get('/subjects', [SubjectController::class, 'index'])
         ->name('subjects.index');

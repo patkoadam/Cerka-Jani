@@ -19,8 +19,8 @@ class ScheduleController extends Controller
         $list = Schedule::with('subject')
             ->where('class_group_id', $classGroup)
             ->where('teacher_id', Auth::id())
-            ->whereBetween('day', [$data['start'], $data['end']])
-            ->orderBy('day')
+            ->whereBetween('date', [$data['start'], $data['end']])
+            ->orderBy('date')
             ->orderBy('time')
             ->get();
 
@@ -31,7 +31,7 @@ class ScheduleController extends Controller
     public function store($classGroup, Request $request)
     {
         $data = $request->validate([
-            'day'        => 'required|date',
+            'date'       => 'required|date',
             'time'       => 'required|date_format:H:i',
             'end_time'   => 'required|date_format:H:i',
             'subject_id' => 'required|exists:subjects,id',

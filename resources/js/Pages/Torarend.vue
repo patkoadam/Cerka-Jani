@@ -163,7 +163,7 @@ export default {
         },
         save() {
             const payload = {
-                day: this.getDateForDay(this.selectedDay),
+                date: this.getDateForDay(this.selectedDay),
                 time: this.selectedTime,
                 end_time: this.timeSlots.find(s => s.time === this.selectedTime).endTime,
                 subject_id: this.selectedSubject

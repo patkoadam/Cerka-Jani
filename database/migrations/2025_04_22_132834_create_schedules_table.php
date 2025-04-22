@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('subject_id')
                 ->constrained('subjects')
                 ->onDelete('cascade');
-            $table->date('day');
+            $table->date('date');
             $table->time('time');
             $table->time('end_time');
             $table->timestamps();

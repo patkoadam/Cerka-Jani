@@ -70,73 +70,7 @@ class ClassGroupController extends Controller
         return response()->json(['message' => 'Diák eltávolítva az osztályból.']);
     }
 
-    public function storeSchedule(Request $request, $classGroupId)
-    {
-        $request->validate([
-            'day'        => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'time'       => 'required|date_format:H:i',
-            'endTime'    => 'required|date_format:H:i',
-            'subject_id' => 'required|exists:subjects,id',
-        ]);
-
-        $user = $request->user();
-
-        // Csak a tanár menthet a saját osztályához
-        $classGroup = ClassGroup::where('id', $classGroupId)
-            ->where('teacher_id', $user->id)
-            ->firstOrFail();
-
-        $schedule = Schedule::create([
-            'class_group_id' => $classGroupId,
-            'teacher_id'     => $user->id,
-            'day'            => $request->day,
-            'start_time'     => $request->time,
-            'end_time'       => $request->endTime,
-            'subject_id'     => $request->subject_id,
-        ]);
-
-        return response()->json($schedule, 201);
-    }
-
-    public function fetchSchedules(Request $request, $classGroupId)
-    {
-        $request->validate([
-            'start' => 'required|date',
-            'end'   => 'required|date',
-        ]);
-
-        $user  = $request->user();
-        $start = $request->start;
-        $end   = $request->end;
-
-        // Ha a migrációd a dátumot 'date' mezőben tárolja, ezt használjuk:
-        $query = Schedule::with('subject')
-            ->where('class_group_id', $classGroupId);
-
-        if ($user->role->name === 'Tanár' || strtolower($user->role->name) === 'teacher') {
-            $query->where('teacher_id', $user->id);
-        }
-
-        $schedules = $query
-            ->whereBetween('date', [$start, $end])   // <— itt 'date', nem 'day'
-            ->get()
-            ->map(function ($s) {
-                return [
-                    'id'        => $s->id,
-                    'date'      => $s->date,            // ISO dátum
-                    'day'       => $s->date,            // vagy itt is date, majd a frontenden fordítod névre
-                    'time'      => $s->start_time,
-                    'endTime'   => $s->end_time,
-                    'subject'   => [
-                        'id'   => $s->subject->id,
-                        'name' => $s->subject->name,
-                    ],
-                ];
-            });
-
-        return response()->json($schedules);
-    }
-
+    
     public function index()
     {
         // csak a teacher_id mezővel hozzárendelt ClassGroup-okat adjuk vissza

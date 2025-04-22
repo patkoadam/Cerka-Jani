@@ -13,7 +13,7 @@ class Schedule extends Model
         'class_group_id',
         'teacher_id',
         'subject_id',
-        'day',
+        'date',
         'time',
         'end_time',
     ];
