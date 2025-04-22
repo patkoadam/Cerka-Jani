@@ -16,7 +16,7 @@ class ClassGroup extends Model
     {
         return $this->belongsTo(User::class, 'teacher_id');
     }
-    
+
     public function schedules()
     {
         return $this->hasMany(Schedule::class, 'class_group_id');
@@ -26,6 +26,6 @@ class ClassGroup extends Model
     public function students()
     {
         return $this->belongsToMany(User::class, 'class_group_student', 'class_group_id', 'user_id')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 }

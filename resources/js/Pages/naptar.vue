@@ -34,8 +34,7 @@
                             <div v-for="slot in timeSlots" :key="slot.time" class="hour-cell"
                                 @click="openModal(day, slot.time, slot.endTime)">
                                 <!-- Kilistázzuk az adott nap és időponthoz tartozó eseményeket -->
-                                <div v-for="event in getEvents(day, slot.time)" :key="event.id" class="event-text"
-                                    :title="event.title">
+                                <div v-for="event in getEvents(day, slot.time)" :key="event.id" class="event-text">
                                     {{ truncateText(event.title, 10) }}
                                 </div>
                             </div>
@@ -116,74 +115,49 @@ export default {
     },
     computed: {
         weekDisplay() {
-            // Az aktuális hét kezdő- és végdátumának kiszámítása:
-            const start = this.currentMonday;
-            let end = new Date(start);
-            end.setDate(start.getDate() + 6);
-            return `${formatDate(start)} - ${formatDate(end)}`;
+            console.log("asd");
+            const start = this.currentMonday
+            const end = new Date(start)
+            end.setDate(start.getDate() + 6)
+            return `${formatDate(start)} - ${formatDate(end)}`
         },
     },
     methods: {
-        nextWeek() {
-            let newMonday = new Date(this.currentMonday);
-            newMonday.setDate(newMonday.getDate() + 7);
-            this.currentMonday = newMonday;
-            this.fetchEvents(); // <-- Események újratöltése
-        },
         prevWeek() {
-            let newMonday = new Date(this.currentMonday);
-            newMonday.setDate(newMonday.getDate() - 7);
-            this.currentMonday = newMonday;
-            this.fetchEvents(); // <-- Események újratöltése
+            const newMon = new Date(this.currentMonday)
+            newMon.setDate(newMon.getDate() - 7)
+            this.currentMonday = newMon
+            this.fetchEvents()
         },
-        // A többi metódus, pl. fetchEvents(), openModal(), closeModal(), saveEvent(), getEvents(), truncateText(), stb.
+        nextWeek() {
+            const newMon = new Date(this.currentMonday)
+            newMon.setDate(newMon.getDate() + 7)
+            this.currentMonday = newMon
+            this.fetchEvents()
+        },
         fetchEvents() {
-            const startOfWeek = formatDate(this.currentMonday);
-            const endDate = new Date(this.currentMonday);
-            endDate.setDate(endDate.getDate() + 6);
-            const endOfWeek = formatDate(endDate);
+            const monday = this.currentMonday;
+            const startOfWeek = formatDate(monday);
 
-            axios.get(`/api/events?start=${startOfWeek}&end=${endOfWeek}`)
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            const endOfWeek = formatDate(sunday);
+
+            axios.get(`http://localhost:8000/api/events?start=${startOfWeek}&end=${endOfWeek}`)
                 .then(response => {
-                    // Itt a backend oldali logika alapján visszakapod a jelenlegi hét eseményeit
                     const hunDays = ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"];
                     this.events = response.data.map(event => {
-                        // formázás...
-                        const date = new Date(event.day);
-                        const dayIndex = date.getDay();
-                        const dayName = hunDays[dayIndex];
+                        const dateObj = new Date(event.day);      
+                        const dayName = hunDays[dateObj.getDay()];
                         return {
                             ...event,
-                            day: dayName,
-                            // ...
+                            date: event.day,          
+                            dayName,                  
+                            time: event.time?.slice(0, 5) ?? "",
+                            endTime: event.end_time?.slice(0, 5) ?? ""
                         };
                     });
-                })
-                .catch(err => {
-                    console.error("Error fetching weekly events:", err);
                 });
-                axios.get(`/api/events?start=${startOfWeek}&end=${endOfWeek}`)
-  .then(response => {
-    console.log("Raw events:", response.data);
-    // A további átalakítás előtt győződj meg róla, hogy itt az adatok helyesek!
-    const hunDays = ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"];
-    const transformed = response.data.map(event => {
-      const date = new Date(event.day);
-      const dayIndex = date.getDay();
-      const dayName = hunDays[dayIndex];
-      const shortTime = event.time ? event.time.slice(0, 5) : "";
-      const shortEndTime = event.end_time ? event.end_time.slice(0, 5) : "";
-      return {
-        ...event,
-        day: dayName,       // pl. "Hétfő"
-        time: shortTime,    // pl. "10:55"
-        endTime: shortEndTime
-      };
-    });
-    console.log("Transformed events:", transformed);
-    this.events = transformed;
-  })
-  .catch(error => console.error("Error fetching events:", error));
         },
         openModal(day, time, endTime) {
             this.selectedDay = day;
@@ -211,11 +185,25 @@ export default {
                 headers: { "Content-Type": "application/json" }
             })
                 .then(response => console.log("Event saved:", response.data))
+                .then(this.fetchEvents())
                 .catch(error => console.error("Error saving event:", error));
             this.closeModal();
         },
         getEvents(day, time) {
-            return this.events.filter(event => event.day === day && event.time === time);
+            const start = this.currentMonday.getTime();
+            const endDate = new Date(this.currentMonday);
+            endDate.setDate(endDate.getDate() + 6);
+            const end = endDate.getTime();
+
+            return this.events.filter(evt => {
+                const d = new Date(evt.date).getTime();
+                return (
+                    d >= start &&
+                    d <= end &&
+                    evt.dayName === day &&
+                    evt.time === time
+                );
+            });
         },
         truncateText(text, length) {
             return text.length > length ? text.substring(0, length) + "..." : text;
@@ -228,8 +216,7 @@ export default {
                 "Szerda": 3,
                 "Csütörtök": 4,
                 "Péntek": 5,
-                "Szombat": 6,
-                "Vasárnap": 0
+
             };
             let currentMonday = new Date(this.currentMonday);
             let targetDate = new Date(currentMonday);

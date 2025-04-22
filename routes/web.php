@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\NaptarController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TeacherScheduleController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MainController;
@@ -14,6 +16,8 @@ use App\Http\Controllers\ClassGroupController;
 use App\Http\Controllers\KezdolapController;
 use App\Http\Controllers\DataController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\StudentScheduleController;
+use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\UzenetController;
 use Inertia\Inertia;
 
@@ -51,6 +55,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/class-groups/{classGroupId}/schedules', [ClassGroupController::class, 'fetchSchedules'])
         ->name('class-group.schedules.index');
+
+
+    Route::get('/subjects', [SubjectController::class, 'index'])
+        ->name('subjects.index');
+
+    Route::get('/class-groups/{classGroup}/schedules', [ScheduleController::class, 'index'])
+        ->name('schedules.index');
+
+    // új beosztás mentése
+    Route::post('/class-groups/{classGroup}/schedules', [ScheduleController::class, 'store'])
+        ->name('schedules.store');
+
+    Route::get('/class-groups', [ClassGroupController::class, 'index']);
 });
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])

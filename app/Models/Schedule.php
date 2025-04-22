@@ -10,10 +10,19 @@ class Schedule extends Model
     use HasFactory;
 
     protected $fillable = [
-        'class_group_id', 'teacher_id', 'subject', 'day_of_week', 'start_time', 'end_time', 'room'
+        'class_group_id',
+        'teacher_id',
+        'subject_id',
+        'day',
+        'time',
+        'end_time',
     ];
 
-    // Az órarend melyik osztálycsoporthoz tartozik
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class);
+    }
+    
     public function classGroup()
     {
         return $this->belongsTo(ClassGroup::class, 'class_group_id');
@@ -25,4 +34,3 @@ class Schedule extends Model
         return $this->belongsTo(User::class, 'teacher_id');
     }
 }
-

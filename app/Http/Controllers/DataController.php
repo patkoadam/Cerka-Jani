@@ -12,4 +12,6 @@ class DataController extends Controller
     {
         return Inertia::render("data");
     }
+
+    
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ClassGroup;
+use App\Models\Schedule;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,8 +49,6 @@ class ClassGroupController extends Controller
 
 
 
-
-
     public function addStudent(Request $request, $classGroupId)
     {
         $request->validate([
@@ -74,24 +73,26 @@ class ClassGroupController extends Controller
     public function storeSchedule(Request $request, $classGroupId)
     {
         $request->validate([
-            'subject'    => 'required|string|max:255',
-            'day_of_week' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'start_time' => 'required|date_format:H:i',
-            'end_time'   => 'required|date_format:H:i',
-            'room'       => 'nullable|string|max:255',
+            'day'        => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+            'time'       => 'required|date_format:H:i',
+            'endTime'    => 'required|date_format:H:i',
+            'subject_id' => 'required|exists:subjects,id',
         ]);
 
-        // Ellenőrizd, hogy az osztálycsoport létezik
-        $classGroup = ClassGroup::findOrFail($classGroupId);
+        $user = $request->user();
 
-        // A tanár id-je a bejelentkezett userből
-        $schedule = $classGroup->schedules()->create([
-            'teacher_id' => Auth::id(),
-            'subject' => $request->subject,
-            'day_of_week' => $request->day_of_week,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'room' => $request->room,
+        // Csak a tanár menthet a saját osztályához
+        $classGroup = ClassGroup::where('id', $classGroupId)
+            ->where('teacher_id', $user->id)
+            ->firstOrFail();
+
+        $schedule = Schedule::create([
+            'class_group_id' => $classGroupId,
+            'teacher_id'     => $user->id,
+            'day'            => $request->day,
+            'start_time'     => $request->time,
+            'end_time'       => $request->endTime,
+            'subject_id'     => $request->subject_id,
         ]);
 
         return response()->json($schedule, 201);
@@ -99,9 +100,50 @@ class ClassGroupController extends Controller
 
     public function fetchSchedules(Request $request, $classGroupId)
     {
-        $classGroup = ClassGroup::findOrFail($classGroupId);
-        // Lekérjük az adott osztály órarendjét, például rendezve nap és kezdési idő szerint:
-        $schedules = $classGroup->schedules()->orderBy('day_of_week')->orderBy('start_time')->get();
+        $request->validate([
+            'start' => 'required|date',
+            'end'   => 'required|date',
+        ]);
+
+        $user  = $request->user();
+        $start = $request->start;
+        $end   = $request->end;
+
+        // Ha a migrációd a dátumot 'date' mezőben tárolja, ezt használjuk:
+        $query = Schedule::with('subject')
+            ->where('class_group_id', $classGroupId);
+
+        if ($user->role->name === 'Tanár' || strtolower($user->role->name) === 'teacher') {
+            $query->where('teacher_id', $user->id);
+        }
+
+        $schedules = $query
+            ->whereBetween('date', [$start, $end])   // <— itt 'date', nem 'day'
+            ->get()
+            ->map(function ($s) {
+                return [
+                    'id'        => $s->id,
+                    'date'      => $s->date,            // ISO dátum
+                    'day'       => $s->date,            // vagy itt is date, majd a frontenden fordítod névre
+                    'time'      => $s->start_time,
+                    'endTime'   => $s->end_time,
+                    'subject'   => [
+                        'id'   => $s->subject->id,
+                        'name' => $s->subject->name,
+                    ],
+                ];
+            });
+
         return response()->json($schedules);
+    }
+
+    public function index()
+    {
+        // csak a teacher_id mezővel hozzárendelt ClassGroup-okat adjuk vissza
+        $groups = ClassGroup::where('teacher_id', Auth::id())
+            ->orderBy('name')
+            ->get();
+
+        return response()->json($groups);
     }
 }

@@ -8,9 +8,12 @@
         <div v-if="isTeacher">
           <ul>
             <li @click="switchComponent('kezdolap')">Kezdőlap</li>
+            <li @click="switchComponent('naptar')">Naptár</li>
             <li @click="switchComponent('Tosztaly')">Osztályok</li>
+            <li @click="switchComponent('Torarend')">Orarend</li>
             <li @click="switchComponent('Tjegyek')">Jegyek</li>
             <li @click="switchComponent('Thianyzasok')">Hiányzások</li>
+            <li @click="switchComponent('profil')">Profil</li>
             <li @click="Logout()">Kijelentkezés</li>
           </ul>
         </div>
@@ -18,9 +21,9 @@
           <ul>
             <li @click="switchComponent('kezdolap')">Kezdőlap</li>
             <li @click="switchComponent('naptar')">Naptár</li>
+            <li @click="switchComponent('osztaly')">Osztályok</li>
             <li @click="switchComponent('orarend')">Órarend</li>
             <li @click="switchComponent('jegyek')">Jegyek</li>
-            <li @click="switchComponent('uzenetek')">Üzenetek</li>
             <li @click="switchComponent('hianyzasok')">Hiányzások</li>
             <li @click="switchComponent('profil')">Profil</li>
             <li @click="Logout()">Kijelentkezés</li>
@@ -32,16 +35,21 @@
       </div>
     </div>
   </div>
+  <TeacherSchedule :classGroupId="currentClassGroupId" />
 </template>
 
 <script>
 import naptar from "/resources/js/Pages/naptar.vue";
-import jegyek from "/resources/js/Pages/jegyek.vue";
-import kezdolap from "/resources/js/Pages/kezdolap.vue";
-import orarend from "/resources/js/Pages/orarend.vue";
-import uzenetek from "/resources/js/Pages/uzenetek.vue";
-import hianyzasok from "/resources/js/Pages/hianyzasok.vue";
 import data from "/resources/js/Pages/data.vue";
+import kezdolap from "/resources/js/Pages/kezdolap.vue";
+
+import jegyek from "/resources/js/Pages/jegyek.vue";
+import orarend from "/resources/js/Pages/orarend.vue";
+import hianyzasok from "/resources/js/Pages/hianyzasok.vue";
+import osztaly from "/resources/js/Pages/osztaly.vue";
+
+
+import Torarend from "/resources/js/Pages/Torarend.vue";
 import Tjegyek from "/resources/js/Pages/Tjegyek.vue";
 import Thianyzasok from "/resources/js/Pages/Thianyzasok.vue";
 import Tosztaly from "/resources/js/Pages/Tosztaly.vue";
@@ -50,15 +58,19 @@ export default {
   name: "Main",
   components: {
     naptar,
-    jegyek,
     kezdolap,
-    orarend,
-    uzenetek,
-    hianyzasok,
     data,
+
+    jegyek,
+    orarend,
+    hianyzasok,  
+    osztaly,
+
+    Torarend,
     Tjegyek,
     Thianyzasok,
     Tosztaly,
+    
   },
   data() {
     return {
@@ -83,7 +95,8 @@ export default {
       return roleData ? roleData.name : "";
     },
     isTeacher() {
-      return this.userRole === "Tanár";
+      console.log(this.isTeacher);
+      return this.userRole ===  "Tanár";
     },
   },
   methods: {
@@ -96,6 +109,7 @@ export default {
     },
   },
 };
+
 </script>
 
 <style>
