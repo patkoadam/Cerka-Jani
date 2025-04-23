@@ -3,8 +3,8 @@
 
         <!-- 0) OSZTÁLYVÁLASZTÓ legördülő -->
         <div class="mb-3">
-            <label for="classGroupSelect" class="form-label">Válassz osztályt:</label>
-            <select id="classGroupSelect" v-model="selectedClassGroupId" class="form-select">
+            <label class="form-label">Válassz osztályt:</label>
+            <select v-model="selectedClassGroupId" class="form-select">
                 <option :value="null" disabled>-- Osztálycsoport --</option>
                 <option v-for="cg in classGroups" :key="cg.id" :value="cg.id">
                     {{ cg.name }} – {{ cg.description }}
@@ -22,24 +22,22 @@
         </div>
 
         <!-- grid csak ha van kiválasztott osztály -->
-        <div v-if="selectedClassGroupId">
-            <div class="schedule-grid">
-                <!-- időoszlop -->
-                <div class="time-column">
-                    <div v-for="slot in timeSlots" :key="slot.time" class="time-slot">
-                        {{ slot.time }}–{{ slot.endTime }}
-                    </div>
+        <div v-if="selectedClassGroupId" class="schedule-grid">
+            <!-- időoszlop -->
+            <div class="time-column" style="margin-top: auto;">
+                <div v-for="slot in timeSlots" :key="slot.time" class="time-slot">
+                    {{ slot.time }}–{{ slot.endTime }}
                 </div>
-                <!-- napok -->
-                <div class="days-column">
-                    <div v-for="day in days" :key="day" class="day-column">
-                        <h5>{{ day }}</h5>
-                        <div v-for="slot in timeSlots" :key="slot.time" class="hour-cell" @click="select(day, slot.time)">
-                            <span v-if="assigned(day, slot.time)">
-                                {{ assigned(day, slot.time).subject.name }}
-                            </span>
-                            <span v-else class="text-muted">–</span>
-                        </div>
+            </div>
+            <!-- napok -->
+            <div class="days-column">
+                <div v-for="day in days" :key="day" class="day-column">
+                    <h5>{{ day }}</h5>
+                    <div v-for="slot in timeSlots" :key="slot.time" class="hour-cell" @click="openModal(day, slot.time)">
+                        <span v-if="assigned(day, slot.time)">
+                            {{ assigned(day, slot.time).subject.name }}
+                        </span>
+                        <span v-else class="text-muted">–</span>
                     </div>
                 </div>
             </div>
@@ -64,7 +62,7 @@
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-secondary" @click="closeModal">Mégse</button>
-                        <button class="btn btn-primary" @click="save">Mentés</button>
+                        <button class="btn btn-primary" @click="saveAssignment">Mentés</button>
                     </div>
                 </div>
             </div>
@@ -85,7 +83,7 @@ export default {
             selectedClassGroupId: null,
 
             currentMonday: this.getMonday(new Date()),
-            days: ["Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat", "Vasárnap"],
+            days: ["Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek"],
             timeSlots: [
                 { time: "08:00", endTime: "08:40" },
                 { time: "08:55", endTime: "09:35" },
@@ -129,27 +127,46 @@ export default {
     },
     methods: {
         // osztálycsoportok betöltése
-        loadClassGroups() {
-            axios.get('/class-groups')        // vagy saját endpoint, ami visszaadja a tanár osztályait
-                .then(r => this.classGroups = r.data)
-                .then(console.log(this.classGroups))
+        async loadClassGroups() {
+            try {
+                const { data } = await axios.get('/class-groups');
+                this.classGroups = data;
+                console.log('Betöltött osztálycsoportok:', this.classGroups);
+            } catch (e) {
+                console.error('Hiba a class-groups lekérésekor:', e);
+            }
         },
 
         // tantárgyak betöltése
-        loadSubjects() {
-            axios.get('/subjects')
-                .then(r => this.subjects = r.data);
+        async loadSubjects() {
+            try {
+                // Ha API-d /subjects helyett /api/subjects, akkor azt írd ide
+                const { data } = await axios.get('/subjects');
+                this.subjects = data
+                console.log('Betöltött tantárgyak:', this.subjects)
+            } catch (err) {
+                console.error('Hiba a tantárgyak lekérésekor:', err)
+            }
         },
 
         // heti beosztások lekérése a kiválasztott osztályhoz
-        loadAssignments() {
+        async loadAssignments() {
             const start = this.formatDate(this.currentMonday);
             const end = this.formatDate(this.addDays(this.currentMonday, 6));
-            axios.get(`/class-groups/${this.selectedClassGroupId}/schedules`, {
-                params: { start, end }
-            })
-                .then(r => this.assignments = r.data);
+            const { data } = await axios.get(
+                `/class-groups/${this.selectedClassGroupId}/schedules`,
+                { params: { start, end } }
+            );
+
+            const hunDays = ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"];
+            this.assignments = data.map(ev => ({
+                dayName: hunDays[new Date(ev.date).getDay()],
+                time: ev.time.slice(0, 5),
+                subject: ev.subject
+            }));
         },
+
+
 
         select(day, time) {
             this.selectedDay = day;
@@ -161,7 +178,7 @@ export default {
         closeModal() {
             this.showModal = false;
         },
-        save() {
+        async save() {
             const payload = {
                 date: this.getDateForDay(this.selectedDay),
                 time: this.selectedTime,
@@ -169,18 +186,21 @@ export default {
                 subject_id: this.selectedSubject
             };
 
-            axios.post(
+            await axios.post(
                 `/class-groups/${this.selectedClassGroupId}/schedules`,
                 payload
-            )
-                .then(() => {
-                    this.loadAssignments();
-                    this.closeModal();
-                });
+            );
+
+            // Ezzel újratöltöd a teljes heti beosztást:
+            await this.loadAssignments();
+            this.closeModal();
         },
 
         assigned(day, time) {
-            return this.assignments.find(a => a.day === day && a.time === time) || null;
+            return this.assignments.find(a =>
+                a.dayName === day &&
+                a.time === time
+            ) || null
         },
         prevWeek() {
             this.currentMonday = this.addDays(this.currentMonday, -7);
@@ -216,10 +236,18 @@ export default {
             return this.formatDate(target);
         }
     },
+    watch: {
+        selectedClassGroupId(newId) {
+            if (newId) {
+                this.loadAssignments();
+            } else {
+                this.assignments = [];
+            }
+        }
+    },
     mounted() {
         this.loadClassGroups();
         this.loadSubjects();
-        // assignments csak a választás után töltődik
     }
 };
 </script>

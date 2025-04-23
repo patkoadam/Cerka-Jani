@@ -62,6 +62,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('schedules.store');
 
     Route::get('/class-groups', [ClassGroupController::class, 'index']);
+
+    Route::get('/class-groups', [ClassGroupController::class, 'indexForTeacher']);
+
 });
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])

@@ -70,7 +70,7 @@ class ClassGroupController extends Controller
         return response()->json(['message' => 'Diák eltávolítva az osztályból.']);
     }
 
-    
+
     public function index()
     {
         // csak a teacher_id mezővel hozzárendelt ClassGroup-okat adjuk vissza
@@ -78,6 +78,12 @@ class ClassGroupController extends Controller
             ->orderBy('name')
             ->get();
 
+        return response()->json($groups);
+    }
+
+    public function indexForTeacher()
+    {
+        $groups = ClassGroup::where('teacher_id', Auth::id())->get();
         return response()->json($groups);
     }
 }
