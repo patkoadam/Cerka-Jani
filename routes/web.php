@@ -51,19 +51,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/api/students', [ClassGroupController::class, 'indexStudents'])->name('students.index');
 
 
+
+
     Route::get('/subjects', [SubjectController::class, 'index'])
         ->name('subjects.index');
-
     Route::get('/class-groups/{classGroup}/schedules', [ScheduleController::class, 'index'])
         ->name('schedules.index');
-
-    // új beosztás mentése
     Route::post('/class-groups/{classGroup}/schedules', [ScheduleController::class, 'store'])
         ->name('schedules.store');
-
     Route::get('/class-groups', [ClassGroupController::class, 'index']);
-
     Route::get('/class-groups', [ClassGroupController::class, 'indexForTeacher']);
+
+
+
+
+    Route::get('/self/schedule', [ScheduleController::class, 'selfSchedule']);
 
 });
 

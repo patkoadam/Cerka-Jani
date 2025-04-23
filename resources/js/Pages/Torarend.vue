@@ -14,13 +14,6 @@
 
         <h2 class="schedule-header">Tanári órarend</h2>
 
-        <!-- heti navigáció -->
-        <div class="d-flex justify-content-between mb-3">
-            <button @click="prevWeek" class="btn btn-secondary">Előző hét</button>
-            <span>{{ weekDisplay }}</span>
-            <button @click="nextWeek" class="btn btn-secondary">Következő hét</button>
-        </div>
-
         <!-- grid csak ha van kiválasztott osztály -->
         <div v-if="selectedClassGroupId" class="schedule-grid">
             <!-- időoszlop -->
@@ -108,13 +101,6 @@ export default {
             selectedSubject: null,
         };
     },
-    computed: {
-        weekDisplay() {
-            const start = this.currentMonday;
-            const end = this.addDays(start, 6);
-            return `${this.formatDate(start)} - ${this.formatDate(end)}`;
-        }
-    },
     watch: {
         // 2) Amint osztályt választ a tanár, újratöltjük a beosztást
         selectedClassGroupId(newId) {
@@ -123,6 +109,9 @@ export default {
             } else {
                 this.assignments = [];
             }
+        },
+        currentMonday() {
+            if (this.selectedClassGroupId) this.loadAssignments();
         }
     },
     methods: {
@@ -201,14 +190,6 @@ export default {
                 a.dayName === day &&
                 a.time === time
             ) || null
-        },
-        prevWeek() {
-            this.currentMonday = this.addDays(this.currentMonday, -7);
-            if (this.selectedClassGroupId) this.loadAssignments();
-        },
-        nextWeek() {
-            this.currentMonday = this.addDays(this.currentMonday, +7);
-            if (this.selectedClassGroupId) this.loadAssignments();
         },
 
         // segédfüggvények

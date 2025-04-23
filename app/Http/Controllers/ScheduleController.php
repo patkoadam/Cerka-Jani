@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Schedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class ScheduleController extends Controller
@@ -12,17 +13,37 @@ class ScheduleController extends Controller
     public function index($classGroup, Request $request)
     {
         $data = $request->validate([
-            'start' => 'required|date',
-            'end'   => 'required|date',
+            'start' => 'required|date',  // az aktuális hétfő
+            'end'   => 'required|date',  // az aktuális vasárnap
         ]);
 
-        $list = Schedule::with('subject')
+        // 1) Parse-oljuk a hétfő dátumát
+        $startWeek = Carbon::parse($data['start']);
+
+        // 2) Beolvassuk az összes mentett órarend-bejegyzést (sablonként)
+        $all = Schedule::with('subject')
             ->where('class_group_id', $classGroup)
             ->where('teacher_id', Auth::id())
-            ->whereBetween('date', [$data['start'], $data['end']])
-            ->orderBy('date')
-            ->orderBy('time')
             ->get();
+
+        // 3) Átszámoljuk őket az aktuális hét napjaira
+        $list = $all->map(function ($sched) use ($startWeek) {
+            $origDate = Carbon::parse($sched->date);
+            $offset   = $origDate->dayOfWeekIso - 1;
+            $newDate  = $startWeek->copy()->addDays($offset);
+
+            return [
+                'date'    => $newDate->format('Y-m-d'),
+                'time'    => $sched->time,       // <<< itt nincs ->format()
+                'subject' => $sched->subject,
+            ];
+        })
+            ->filter(
+                fn($ev) =>
+                Carbon::parse($ev['date'])->between($data['start'], $data['end'])
+            )
+            ->sortBy('time')
+            ->values();
 
         return response()->json($list);
     }
@@ -43,5 +64,20 @@ class ScheduleController extends Controller
         $sched = Schedule::create($data);
 
         return response()->json($sched, 201);
+    }
+
+
+
+
+    public function selfSchedule(Request $request)
+    {
+        // 1) Lekérjük a diák osztálycsoportját
+        $group = Auth::user()->classGroups->first();
+        if (! $group) {
+            return response()->json(['message' => 'Nincs hozzárendelt osztályod'], 404);
+        }
+
+        // 2) Átirányítjuk az index() logikára
+        return $this->index($group->id, $request);
     }
 }
