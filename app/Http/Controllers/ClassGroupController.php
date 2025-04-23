@@ -10,76 +10,60 @@ use Illuminate\Support\Facades\Auth;
 
 class ClassGroupController extends Controller
 {
+    public function index(Request $request)
+    {
+        $q = ClassGroup::where('teacher_id', Auth::id());
+        if ($request->has('name')) {
+            // pontos egyezés; ha részleges kell, használd ->where('name','like',"%{$request->name}%")
+            $q->where('name', $request->query('name'));
+        }
+        return response()->json($q->get());
+    }
+
+    // POST /api/class-groups
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+        $data = $request->validate([
+            'name'        => 'required|string|max:255',
+            'description' => 'nullable|string|max:255',
         ]);
-
-        $classGroup = ClassGroup::create([
-            'teacher_id' => Auth::id(), // A bejelentkezett tanár lesz az osztály létrehozója
-            'name' => $request->name,
-            'description' => $request->description,
-        ]);
-
-        return response()->json($classGroup, 201);
+        $data['teacher_id'] = Auth::id();
+        $cg = ClassGroup::create($data);
+        return response()->json($cg, 201);
     }
 
-    public function fetchStudents(Request $request, $classGroupId)
+    // GET /api/class-groups/{id}/students
+    public function students(ClassGroup $classGroup)
     {
-        $classGroup = ClassGroup::findOrFail($classGroupId);
-        $students = $classGroup->students;
-        return response()->json($students);
+        // feltételezzük, hogy ClassGroup modellben van:
+        // public function students() { return $this->belongsToMany(User::class, 'class_group_student'); }
+        return response()->json(
+            $classGroup->students()->get()
+        );
     }
 
-    public function indexStudents(Request $request)
+    // POST /api/class-groups/{id}/students
+    public function addStudent(Request $request, ClassGroup $classGroup)
     {
-        $query = $request->get('query', '');
-        // Feltételezzük, hogy a diákok role_id-je például 1 (vagy módosítsd az értéket a saját logikád szerint)
-        $students = User::where('role_id', 1)
-            ->when($query, function ($q, $query) {
-                return $q->where('name', 'LIKE', "%{$query}%")
-                    ->orWhere('email', 'LIKE', "%{$query}%");
-            })
-            ->get();
-
-        return response()->json($students);
-    }
-
-
-
-    public function addStudent(Request $request, $classGroupId)
-    {
-        $request->validate([
+        $data = $request->validate([
             'user_id' => 'required|exists:users,id',
         ]);
-
-        $classGroup = ClassGroup::findOrFail($classGroupId);
-        $classGroup->students()->attach($request->user_id);
-
-        return response()->json(['message' => 'Diák hozzáadva az osztályhoz.']);
+        // syncWithoutDetaching, hogy ne töröljünk másokat
+        $classGroup->students()->syncWithoutDetaching([$data['user_id']]);
+        return response()->json(null, 204);
     }
 
-
-    public function delete($classGroupId, $userId)
+    // DELETE /api/class-groups/{id}/students/{userId}
+    public function removeStudent(ClassGroup $classGroup, $userId)
     {
-        $classGroup = ClassGroup::findOrFail($classGroupId);
         $classGroup->students()->detach($userId);
-
-        return response()->json(['message' => 'Diák eltávolítva az osztályból.']);
+        return response()->json(null, 204);
     }
 
 
-    public function index()
-    {
-        // csak a teacher_id mezővel hozzárendelt ClassGroup-okat adjuk vissza
-        $groups = ClassGroup::where('teacher_id', Auth::id())
-            ->orderBy('name')
-            ->get();
 
-        return response()->json($groups);
-    }
+
+    
 
     public function indexForTeacher()
     {

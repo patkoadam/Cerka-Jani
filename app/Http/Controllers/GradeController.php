@@ -1,79 +1,77 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Models\Subject;
-use App\Models\Teacher;
-use Illuminate\Http\Request;
+use App\Models\ClassGroup;
 use App\Models\Grade;
-use App\Models\User;
+use App\Models\Subject;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
+use Carbon\Carbon;
 
 class GradeController extends Controller
 {
+    // GET /api/grades
     public function index(Request $request)
     {
-        $grades = Grade::with(['subject', 'teacher'])
-        ->where('user_id', Auth::id())
-        ->paginate(10);
+        $teacherId = Auth::id();
 
-                   
+        // 1) Tanár osztályai
+        $classes = ClassGroup::where('teacher_id', $teacherId)->get();
 
-        $users = User::all();
-        $subjects = Subject::all();
-        $teachers = Teacher::all();
+        // 2) Ha class_id param érkezik, betöltjük a diákokat jegyekkel
+        $students = [];
+        if ($request->filled('class_id')) {
+            $class = ClassGroup::where('teacher_id', $teacherId)
+                ->findOrFail($request->query('class_id'));
+
+            $students = $class->students()
+                ->with(['grades.subject'])
+                ->get()
+                ->map(function($student) {
+                    $grouped = [];
+                    foreach ($student->grades as $grade) {
+                        $sub = $grade->subject->name;
+                        $grouped[$sub][] = [
+                            'id'      => $grade->id,
+                            'grade'   => $grade->grade,
+                            'dated'   => Carbon::parse($grade->graded_at)->format('Y-m-d'),
+                            'remarks' => $grade->remarks,
+                        ];
+                    }
+                    return [
+                        'id'     => $student->id,
+                        'name'   => $student->name,
+                        'grades' => $grouped,
+                    ];
+                });
+        }
 
         return response()->json([
-            'grades'   => $grades,
-            'users'    => $users,
-            'subjects' => $subjects,
-            'teachers' => $teachers,
-        ], 200, ['Access-Control-Allow-Origin' => '*'], JSON_UNESCAPED_UNICODE);
+            'classes'  => $classes,
+            'students' => $students,
+            'subjects' => Subject::all(['id','name']),
+        ]);
     }
 
+    // POST /api/grades
     public function store(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'student_id' => 'required|exists:students,id',
-                'subject_id' => 'required|exists:subjects,id',
-                'teacher_id' => 'required|exists:teachers,id',
-                'grade'      => 'required|numeric|min:1|max:5',
-                'graded_at'  => 'required|date',
-                'remarks'    => 'nullable|string'
-            ]);
-    
-            Grade::create($validated);
-        } catch (ValidationException $th) {
-            return response()->json(['success' => false, 'message' => $th->errors()], 201, ['Access-Control-Allow-Origin' => '*'], JSON_UNESCAPED_UNICODE);
-        }
-        return response()->json(['success' => true, 'message' => 'Event successfully added!'], 200, ['Access-Control-Allow-Origin' => '*'], JSON_UNESCAPED_UNICODE);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $grade = Grade::findOrFail($id);
-
-        $validated = $request->validate([
-            'student_id' => 'required|exists:students,id',
+        $data = $request->validate([
+            'student_id' => 'required|exists:users,id',
             'subject_id' => 'required|exists:subjects,id',
-            'teacher_id' => 'required|exists:teachers,id',
-            'grade'      => 'required|numeric|min:1|max:5',
-            'graded_at'  => 'required|date',
-            'remarks'    => 'nullable|string'
+            'grade'      => 'required|numeric|between:1,5',
+            'remarks'    => 'nullable|string',
         ]);
 
-        $grade->update($validated);
+        // átnevezzük user_id-re
+        $data['user_id']   = $data['student_id'];
+        unset($data['student_id']);
 
-        return redirect()->route('grades.index')->with('success', 'Jegy módosítva.');
-    }
+        // a többi mező
+        $data['teacher_id'] = Auth::id();
+        $data['graded_at']  = Carbon::today()->format('Y-m-d');
 
-    public function destroy($id)
-    {
-        $grade = Grade::findOrFail($id);
-        $grade->delete();
-
-        return redirect()->back()->with('success', 'Jegy törölve.');
+        $grade = Grade::create($data);
+        return response()->json($grade, 201);
     }
 }

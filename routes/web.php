@@ -18,6 +18,7 @@ use App\Http\Controllers\DataController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StudentScheduleController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\UzenetController;
 use Inertia\Inertia;
 
@@ -44,11 +45,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/grades', [GradeController::class, 'index'])->name('grade');
     Route::get('/roles', [RoleController::class, 'index'])->name('role');
 
-    Route::post('/api/class-groups', [ClassGroupController::class, 'store'])->name('class-groups.store');
-    Route::get('/api/class-groups/{classGroupId}/students', [ClassGroupController::class, 'fetchStudents'])->name('class-groups.students.index');
-    Route::post('/api/class-groups/{classGroupId}/students', [ClassGroupController::class, 'addStudent'])->name('class-groups.students.add');
-    Route::delete('/api/class-groups/{classGroupId}/students/{userId}', [ClassGroupController::class, 'delete'])->name('class-groups.students.delete');
-    Route::get('/api/students', [ClassGroupController::class, 'indexStudents'])->name('students.index');
+    Route::get   ('/class-groups',                          [ClassGroupController::class, 'index']);
+    Route::post  ('/class-groups',                          [ClassGroupController::class, 'store']);
+    
+    // Osztályhoz tartozó diákok kezelése
+    Route::get   ('/class-groups/{classGroup}/students',    [ClassGroupController::class, 'students']);
+    Route::post  ('/class-groups/{classGroup}/students',    [ClassGroupController::class, 'addStudent']);
+    Route::delete('/class-groups/{classGroup}/students/{user}', [ClassGroupController::class, 'removeStudent']);
+
+    // Diákok keresése név vagy email alapján
+    Route::get   ('/students',                              [UserController::class, 'index']);
 
 
 
@@ -66,6 +72,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     Route::get('/self/schedule', [ScheduleController::class, 'selfSchedule']);
+
+
+
+
+    Route::get('/grades', [GradeController::class, 'index']);
+    Route::post('/grades', [GradeController::class, 'store']);
 
 });
 

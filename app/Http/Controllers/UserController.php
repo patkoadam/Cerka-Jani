@@ -7,10 +7,21 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::all();
+        $q = User::where('role_id', 1);
 
-        return response()->json($users, 200, ['Access-Control-Allow-Origin' => '*'], JSON_UNESCAPED_UNICODE);
+        if ($request->filled('query')) {
+            $term = $request->query('query');
+            $q->where(function ($sub) use ($term) {
+                $sub->where('name', 'like', "%{$term}%")
+                    ->orWhere('email', 'like', "%{$term}%");
+            });
+        }
+
+        // csak a szükséges mezőket adjuk vissza
+        $students = $q->get(['id', 'name', 'email']);
+
+        return response()->json($students);
     }
 }

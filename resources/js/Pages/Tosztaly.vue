@@ -1,46 +1,58 @@
 <template>
-    <div>
-        <h2>Új Osztály Létrehozása</h2>
-        <form @submit.prevent="createClass">
-            <div class="mb-3">
-                <label for="className" class="form-label">Osztály neve</label>
-                <input type="text" id="className" v-model="newClass.name" class="form-control" required />
-            </div>
-            <div class="mb-3">
-                <label for="classDesc" class="form-label">Leírás</label>
-                <input type="text" id="classDesc" v-model="newClass.description" class="form-control" />
-            </div>
-            <button type="submit" class="btn btn-primary">Létrehozás</button>
-        </form>
+    <div class="class-groups-container">
+        <h2>Osztályok</h2>
 
-        <!-- Miután az osztály létrejött -->
-        <div v-if="classGroup.id" class="mt-4">
-            <h3>Diákok hozzáadása az osztályhoz</h3>
-            <!-- Kereső mező a diákokra -->
-            <div class="mb-3">
-                <input type="text" v-model="searchQuery" @input="searchStudents"
-                    placeholder="Keress diákokat név vagy email alapján..." class="form-control" />
-            </div>
-            <!-- Keresési eredmények listája -->
-            <div v-if="searchResults.length">
-                <div v-for="student in searchResults" :key="student.id"
-                    class="d-flex justify-content-between align-items-center mb-2">
-                    <span>{{ student.name }} ({{ student.email }})</span>
-                    <button class="btn btn-sm btn-success" @click="addStudent(student.id)">
-                        Hozzáadás
-                    </button>
+        <!-- Új osztály létrehozása -->
+        <form @submit.prevent="createClass" class="mb-4">
+            <div class="row g-2 align-items-end">
+                <div class="col">
+                    <label for="class-name" class="form-label">Osztály neve</label>
+                    <input id="class-name" type="text" v-model="newClass.name" class="form-control"
+                        placeholder="Új osztály neve..." required />
+                </div>
+                <div class="col">
+                    <label for="class-desc" class="form-label">Leírás</label>
+                    <input id="class-desc" type="text" v-model="newClass.description" class="form-control"
+                        placeholder="(opcionális)" />
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Létrehozás</button>
                 </div>
             </div>
-            <!-- Aktuálisan az osztályhoz tartozó diákok listája -->
-            <div class="mt-3" v-if="classGroupStudents.length">
-                <h4>Aktuális osztálytagok:</h4>
-                <ul class="list-group">
-                    <li v-for="student in classGroupStudents" :key="student.id"
+        </form>
+
+        <!-- Létező osztályok listája -->
+        <div v-for="group in classGroups" :key="group.id" class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ group.name }}</h5>
+                <p class="card-text" v-if="group.description">{{ group.description }}</p>
+
+                <!-- Diákok listája -->
+                <ul class="list-group mb-3">
+                    <li v-for="student in classStudents[group.id] || []" :key="student.id"
                         class="list-group-item d-flex justify-content-between align-items-center">
-                        {{ student.name }}
-                        <button class="btn btn-sm btn-danger" @click="removeStudent(student.id)">
-                            Eltávolítás
-                        </button>
+                        {{ student.name }} ({{ student.email }})
+                        <button class="btn btn-sm btn-danger"
+                            @click="removeStudent(group.id, student.id)">Eltávolítás</button>
+                    </li>
+                    <li v-if="!(classStudents[group.id] || []).length" class="list-group-item text-muted">
+                        Nincs diák ebben az osztályban.
+                    </li>
+                </ul>
+
+                <!-- Diák hozzáadása -->
+                <div class="input-group">
+                    <input type="text" v-model="groupSearch[group.id]" @input="searchStudents(group.id)"
+                        class="form-control" placeholder="Keress diákot név vagy email alapján..." />
+                    <button class="btn btn-outline-secondary" @click="addStudent(group.id, selectedForGroup[group.id])"
+                        :disabled="!selectedForGroup[group.id]">
+                        +
+                    </button>
+                </div>
+                <ul class="list-group mt-2" v-if="groupResults[group.id] && groupResults[group.id].length">
+                    <li v-for="student in groupResults[group.id]" :key="student.id"
+                        class="list-group-item list-group-item-action" @click="selectStudent(group.id, student)">
+                        {{ student.name }} ({{ student.email }})
                     </li>
                 </ul>
             </div>
@@ -49,98 +61,131 @@
 </template>
   
 <script>
-import axios from "axios";
+import axios from 'axios';
 
 export default {
-    name: "Osztalyok",
+    name: 'ClassGroups',
     data() {
         return {
-            newClass: {
-                name: "",
-                description: "",
-            },
-            classGroup: {},           // Az újaként létrehozott osztály adatai
-            searchQuery: "",
-            searchResults: [],        // A keresési eredmények listája (csak a keresés alapján)
-            classGroupStudents: [],   // Az osztályba felvett diákok listája
-            message: "",
+            newClass: { name: '', description: '' },
+            classGroups: [],
+            classStudents: {},       // { [groupId]: [students] }
+            groupSearch: {},         // { [groupId]: query }
+            groupResults: {},        // { [groupId]: [search results] }
+            selectedForGroup: {},    // { [groupId]: studentId }
         };
     },
     methods: {
-        createClass() {
-            axios
-                .post("/api/class-groups", this.newClass)
-                .then((response) => {
-                    this.classGroup = response.data; // response.data.id → kellene, hogy legyen!
-                    this.message = "Osztály sikeresen létrejött!";
-                    this.fetchClassGroupStudents();
-                    console.log(this.classGroup);
-                })
-                .catch((error) => {
-                    console.error("Osztály létrehozása hiba:", error);
-                    this.message = "Hiba az osztály létrehozásakor.";
+        async loadClassGroups() {
+            try {
+                const { data } = await axios.get('/class-groups');
+                this.classGroups = data;
+                data.forEach(g => {
+                    this.fetchStudents(g.id);
+                    this.groupSearch[g.id] = '';
+                    this.groupResults[g.id] = [];
+                    this.selectedForGroup[g.id] = null;
+                    this.classStudents[g.id] = [];
                 });
+            } catch (e) {
+                console.error(e);
+            }
         },
 
-        fetchClassGroupStudents() {
-            if (!this.classGroup.id) {
-                console.error("Class group ID is undefined.");
+        async createClass() {
+            if (!this.newClass.name.trim()) return;
+            try {
+                const payload = {
+                    name: this.newClass.name.trim(),
+                    description: this.newClass.description.trim() || null
+                };
+                const { data } = await axios.post('/class-groups', payload);
+                // reset form
+                this.newClass.name = '';
+                this.newClass.description = '';
+                this.classGroups.push(data);
+                this.classStudents[data.id] = [];
+                this.groupSearch[data.id] = '';
+                this.groupResults[data.id] = [];
+                this.selectedForGroup[data.id] = null;
+            } catch (e) {
+                console.error(e);
+            }
+        },
+
+        async fetchStudents(groupId) {
+            try {
+                const { data } = await axios.get(`/class-groups/${groupId}/students`);
+                this.classStudents[groupId] = data;
+            } catch (e) {
+                console.error(e);
+            }
+        },
+
+        async searchStudents(groupId) {
+            const q = this.groupSearch[groupId];
+            if (!q || q.length < 3) {
+                this.groupResults[groupId] = [];
                 return;
             }
-            axios
-                .get(`/api/class-groups/${this.classGroup.id}/students`)
-                .then((response) => {
-                    this.classGroupStudents = response.data;
-                    console.log(this.classGroupStudents);
-                })
-                .catch((error) => {
-                    console.error("Hiba az osztálytagok lekérésekor:", error);
-                });
-        },
-        addStudent(studentId) {
-            // Diák hozzáadása az osztályhoz
-            axios
-                .post(`/api/class-groups/${this.classGroup.id}/students`, { user_id: studentId })
-                .then(() => {
-                    this.fetchClassGroupStudents();
-                    // Opció: töröld a hozzáadott diákot a keresési eredmények közül
-                    this.searchResults = this.searchResults.filter(s => s.id !== studentId);
-                })
-                .catch((error) => {
-                    console.error("Hiba diák hozzáadásakor:", error);
-                });
-        },
-        removeStudent(studentId) {
-            // Diák eltávolítása az osztályból
-            axios
-                .delete(`/api/class-groups/${this.classGroup.id}/students/${studentId}`)
-                .then(() => {
-                    this.fetchClassGroupStudents();
-                })
-                .catch((error) => {
-                    console.error("Hiba diák eltávolításakor:", error);
-                });
-        },
-        searchStudents() {
-            // Minimum 3 karakternél indítsuk a keresést
-            if (this.searchQuery.length > 2) {
-                axios
-                    .get(`/api/students?query=${this.searchQuery}`)
-                    .then((response) => {
-                        this.searchResults = response.data;
-                    })
-                    .catch((error) => {
-                        console.error("Hiba diákok keresésekor:", error);
-                    });
-            } else {
-                this.searchResults = [];
+            try {
+                const { data } = await axios.get('/students', { params: { query: q } });
+                this.groupResults[groupId] = data;
+            } catch (e) {
+                console.error(e);
             }
         },
+
+        selectStudent(groupId, student) {
+            this.selectedForGroup[groupId] = student.id;
+            this.groupSearch[groupId] = student.name;
+            this.groupResults[groupId] = [];
+        },
+
+        async addStudent(groupId, studentId) {
+            if (!studentId) return;
+            try {
+                await axios.post(`/class-groups/${groupId}/students`, { user_id: studentId });
+                this.fetchStudents(groupId);
+                this.groupSearch[groupId] = '';
+                this.selectedForGroup[groupId] = null;
+            } catch (e) {
+                console.error(e);
+            }
+        },
+
+        async removeStudent(groupId, studentId) {
+            try {
+                await axios.delete(`/class-groups/${groupId}/students/${studentId}`);
+                this.fetchStudents(groupId);
+            } catch (e) {
+                console.error(e);
+            }
+        }
     },
+    mounted() {
+        this.loadClassGroups();
+    }
 };
 </script>
   
 <style scoped>
-/* Használd a Bootstrap-os osztályokat vagy szükséges egyedi stílusokat */
+.class-groups-container {
+    padding: 1rem;
+}
+
+.card {
+    border-radius: 0.5rem;
+}
+
+.input-group .form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
 </style>
   
