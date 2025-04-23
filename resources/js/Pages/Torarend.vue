@@ -33,7 +33,7 @@
             <div class="days-column">
                 <div v-for="day in days" :key="day" class="day-column">
                     <h5>{{ day }}</h5>
-                    <div v-for="slot in timeSlots" :key="slot.time" class="hour-cell" @click="openModal(day, slot.time)">
+                    <div v-for="slot in timeSlots" :key="slot.time" class="hour-cell" @click="select(day, slot.time)">
                         <span v-if="assigned(day, slot.time)">
                             {{ assigned(day, slot.time).subject.name }}
                         </span>
@@ -62,7 +62,7 @@
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-secondary" @click="closeModal">Mégse</button>
-                        <button class="btn btn-primary" @click="saveAssignment">Mentés</button>
+                        <button class="btn btn-primary" @click="save">Mentés</button>
                     </div>
                 </div>
             </div>
