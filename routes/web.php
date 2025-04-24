@@ -45,16 +45,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/grades', [GradeController::class, 'index'])->name('grade');
     Route::get('/roles', [RoleController::class, 'index'])->name('role');
 
-    Route::get   ('/class-groups',                          [ClassGroupController::class, 'index']);
-    Route::post  ('/class-groups',                          [ClassGroupController::class, 'store']);
-    
+    Route::get('/class-groups',                          [ClassGroupController::class, 'index']);
+    Route::post('/class-groups',                          [ClassGroupController::class, 'store']);
+
     // Osztályhoz tartozó diákok kezelése
-    Route::get   ('/class-groups/{classGroup}/students',    [ClassGroupController::class, 'students']);
-    Route::post  ('/class-groups/{classGroup}/students',    [ClassGroupController::class, 'addStudent']);
+    Route::get('/class-groups/{classGroup}/students',    [ClassGroupController::class, 'students']);
+    Route::post('/class-groups/{classGroup}/students',    [ClassGroupController::class, 'addStudent']);
     Route::delete('/class-groups/{classGroup}/students/{user}', [ClassGroupController::class, 'removeStudent']);
 
     // Diákok keresése név vagy email alapján
-    Route::get   ('/students',                              [UserController::class, 'index']);
+    Route::get('/students',                              [UserController::class, 'index']);
 
 
 
@@ -78,7 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/grades', [GradeController::class, 'index']);
     Route::post('/grades', [GradeController::class, 'store']);
-
+    Route::get('/self/grades', [GradeController::class, 'selfIndex']);
 });
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])

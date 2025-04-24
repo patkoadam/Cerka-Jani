@@ -1,11 +1,14 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\ClassGroup;
 use App\Models\Grade;
 use App\Models\Subject;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log; 
 use Carbon\Carbon;
 
 class GradeController extends Controller
@@ -27,7 +30,7 @@ class GradeController extends Controller
             $students = $class->students()
                 ->with(['grades.subject'])
                 ->get()
-                ->map(function($student) {
+                ->map(function ($student) {
                     $grouped = [];
                     foreach ($student->grades as $grade) {
                         $sub = $grade->subject->name;
@@ -49,7 +52,7 @@ class GradeController extends Controller
         return response()->json([
             'classes'  => $classes,
             'students' => $students,
-            'subjects' => Subject::all(['id','name']),
+            'subjects' => Subject::all(['id', 'name']),
         ]);
     }
 
@@ -73,5 +76,30 @@ class GradeController extends Controller
 
         $grade = Grade::create($data);
         return response()->json($grade, 201);
+    }
+
+
+    public function selfIndex(Request $request)
+    {
+        $user = Auth::user();
+        $userId = $user->id;
+        $rawGrades = Grade::where('user_id', $userId)->get();
+        Log::info('Raw grades count', ['count' => $rawGrades->count()]);
+        Log::info('Raw grades data', ['grades' => $rawGrades->toArray()]);
+
+        $gradesBySubject = $rawGrades
+            ->load('subject')
+            ->groupBy(fn($g) => $g->subject->name)
+            ->map(fn($collection, $subj) => $collection->map(fn($g) => [
+                'id'      => $g->id,
+                'grade'   => $g->grade,
+                'dated'   => Carbon::parse($g->graded_at)->format('Y-m-d'),
+                'remarks' => $g->remarks,
+            ]))
+            ->toArray();
+
+        return response()->json([
+            'gradesBySubject' => $gradesBySubject,
+        ]);
     }
 }

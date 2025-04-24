@@ -77,7 +77,38 @@ class ScheduleController extends Controller
             return response()->json(['message' => 'Nincs hozzárendelt osztályod'], 404);
         }
 
-        // 2) Átirányítjuk az index() logikára
-        return $this->index($group->id, $request);
+        $data = $request->validate([
+            'start' => 'required|date',  // az aktuális hétfő
+            'end'   => 'required|date',  // az aktuális vasárnap
+        ]);
+
+        // 1) Parse-oljuk a hétfő dátumát
+        $startWeek = Carbon::parse($data['start']);
+
+        // 2) Beolvassuk az összes mentett órarend-bejegyzést (sablonként)
+        $all = Schedule::with('subject')
+            ->where('class_group_id', $group->id)
+            ->get();
+
+        // 3) Átszámoljuk őket az aktuális hét napjaira
+        $list = $all->map(function ($sched) use ($startWeek) {
+            $origDate = Carbon::parse($sched->date);
+            $offset   = $origDate->dayOfWeekIso - 1;
+            $newDate  = $startWeek->copy()->addDays($offset);
+
+            return [
+                'date'    => $newDate->format('Y-m-d'),
+                'time'    => $sched->time,       // <<< itt nincs ->format()
+                'subject' => $sched->subject,
+            ];
+        })
+            ->filter(
+                fn($ev) =>
+                Carbon::parse($ev['date'])->between($data['start'], $data['end'])
+            )
+            ->sortBy('time')
+            ->values();
+
+        return response()->json($list);
     }
 }
