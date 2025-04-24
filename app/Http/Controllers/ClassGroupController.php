@@ -63,11 +63,26 @@ class ClassGroupController extends Controller
 
 
 
-    
-
     public function indexForTeacher()
     {
         $groups = ClassGroup::where('teacher_id', Auth::id())->get();
         return response()->json($groups);
+    }
+
+
+    public function selfStudents(Request $request)
+    {
+        $user = Auth::user();
+        // csak egy osztály van hozzárendelve
+        $group = $user->classGroups->first();
+        if (! $group) {
+            return response()->json(['message' => 'Nincs hozzárendelt osztálycsoport'], 404);
+        }
+        // lekérdezzük a tagokat
+        $students = $group->students()
+            ->select('users.id','users.name','users.email')
+            ->get();
+
+        return response()->json($students);
     }
 }

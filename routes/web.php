@@ -79,6 +79,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/grades', [GradeController::class, 'index']);
     Route::post('/grades', [GradeController::class, 'store']);
     Route::get('/self/grades', [GradeController::class, 'selfIndex']);
+
+
+    Route::get('/self/classmates', [ClassGroupController::class, 'selfStudents']);
 });
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])

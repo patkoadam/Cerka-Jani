@@ -20,7 +20,7 @@
           <ul>
             <li @click="switchComponent('kezdolap')">Kezdőlap</li>
             <li @click="switchComponent('naptar')">Naptár</li>
-            <li @click="switchComponent('osztaly')">Osztályok</li>
+            <li @click="switchComponent('osztaly')">Osztály</li>
             <li @click="switchComponent('orarend')">Órarend</li>
             <li @click="switchComponent('jegyek')">Jegyek</li>
             <li @click="switchComponent('profile')">Profil</li>
