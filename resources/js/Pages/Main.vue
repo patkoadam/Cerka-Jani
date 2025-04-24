@@ -12,8 +12,7 @@
             <li @click="switchComponent('Tosztaly')">Osztályok</li>
             <li @click="switchComponent('Torarend')">Orarend</li>
             <li @click="switchComponent('Tjegyek')">Jegyek</li>
-            <li @click="switchComponent('Thianyzasok')">Hiányzások</li>
-            <li @click="switchComponent('profil')">Profil</li>
+            <li @click="switchComponent('profile')">Profil</li>
             <li @click="Logout()">Kijelentkezés</li>
           </ul>
         </div>
@@ -24,8 +23,7 @@
             <li @click="switchComponent('osztaly')">Osztályok</li>
             <li @click="switchComponent('orarend')">Órarend</li>
             <li @click="switchComponent('jegyek')">Jegyek</li>
-            <li @click="switchComponent('hianyzasok')">Hiányzások</li>
-            <li @click="switchComponent('profil')">Profil</li>
+            <li @click="switchComponent('profile')">Profil</li>
             <li @click="Logout()">Kijelentkezés</li>
           </ul>
         </div>
@@ -40,18 +38,16 @@
 
 <script>
 import naptar from "/resources/js/Pages/naptar.vue";
-import data from "/resources/js/Pages/data.vue";
+import profile from "/resources/js/Pages/profile.vue";
 import kezdolap from "/resources/js/Pages/kezdolap.vue";
 
 import jegyek from "/resources/js/Pages/jegyek.vue";
 import orarend from "/resources/js/Pages/orarend.vue";
-import hianyzasok from "/resources/js/Pages/hianyzasok.vue";
 import osztaly from "/resources/js/Pages/osztaly.vue";
 
 
 import Torarend from "/resources/js/Pages/Torarend.vue";
 import Tjegyek from "/resources/js/Pages/Tjegyek.vue";
-import Thianyzasok from "/resources/js/Pages/Thianyzasok.vue";
 import Tosztaly from "/resources/js/Pages/Tosztaly.vue";
 
 export default {
@@ -59,16 +55,14 @@ export default {
   components: {
     naptar,
     kezdolap,
-    data,
+    profile,
 
     jegyek,
-    orarend,
-    hianyzasok,  
+    orarend, 
     osztaly,
 
     Torarend,
     Tjegyek,
-    Thianyzasok,
     Tosztaly,
     
   },
