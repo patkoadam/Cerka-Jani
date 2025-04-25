@@ -4,7 +4,7 @@
 
         <div v-if="assignments.length" class="schedule-grid">
             <!-- időoszlop -->
-            <div class="time-column" style="margin-top: auto;">
+            <div class="time-column">
                 <div v-for="slot in timeSlots" :key="slot.time" class="time-slot">
                     {{ slot.time }}–{{ slot.endTime }}
                 </div>
@@ -13,7 +13,7 @@
             <!-- napok -->
             <div class="days-column">
                 <div v-for="day in days" :key="day" class="day-column">
-                    <h5>{{ day }}</h5>
+                    <h5 class="day-header">{{ day }}</h5>
                     <div v-for="slot in timeSlots" :key="slot.time" class="hour-cell">
                         <span v-if="assigned(day, slot.time)">
                             {{ assigned(day, slot.time).subject.name }}
@@ -55,33 +55,22 @@ export default {
             assignments: []
         };
     },
-    computed: {
-        weekDisplay() {
-            const start = this.currentMonday;
-            const end = this.addDays(start, 6);
-            return `${this.formatDate(start)} – ${this.formatDate(end)}`;
-        }
-    },
     methods: {
         async loadAssignments() {
             const start = this.formatDate(this.currentMonday);
             const end = this.formatDate(this.addDays(this.currentMonday, 6));
-            console.log('Lekérdezés kezdete:', start, end);
             try {
-                const response = await axios.get('/self/schedule', { params: { start, end } });
-                console.log('Szerver válasz:', response.data);
+                const { data } = await axios.get('/self/schedule', { params: { start, end } });
                 const hunDays = ['Vasárnap', 'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek', 'Szombat'];
-                this.assignments = response.data.map(ev => ({
+                this.assignments = data.map(ev => ({
                     dayName: hunDays[new Date(ev.date).getDay()],
                     time: ev.time.slice(0, 5),
                     subject: ev.subject
                 }));
-            } catch (error) {
-                console.error('Hiba az órarend lekérésekor:', error);
+            } catch {
                 this.assignments = [];
             }
         },
-
         assigned(day, time) {
             return this.assignments.find(a => a.dayName === day && a.time === time) || null;
         },
@@ -113,15 +102,38 @@ export default {
 .schedule-container {
     background: #fff;
     border-radius: 10px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
     padding: 20px;
+    width: 100%;
 }
 
+/* Címsor */
+.schedule-header {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #1e3a8a;
+}
+
+/* Alap flex layout és scroll engedélyezése */
 .schedule-grid {
     display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    align-items: stretch;
+    width: 100%;
 }
 
+/* Ne zsugorodjanak össze */
+.time-column,
+.day-column {
+    flex-shrink: 0;
+}
+
+/* Időoszlop */
 .time-column {
-    width: 120px;
+    width: 90px;
     display: flex;
     flex-direction: column;
 }
@@ -131,32 +143,51 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-bottom: 1px solid #23395B;
-    background: #E3E8F0;
+    border-bottom: 1px solid #23395b;
+    background: #e3e8f0;
     font-weight: bold;
-    color: #1E3A8A;
+    color: #1e3a8a;
 }
 
+/* Napok oszlopai */
 .days-column {
-    flex: 1;
     display: flex;
 }
 
 .day-column {
-    flex: 1;
+    min-width: 120px;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
+.day-header {
+    margin-bottom: 5px;
+}
+
+/* Cellák */
 .hour-cell {
     height: 50px;
     width: 100%;
-    border: 1px solid #23395B;
+    border: 1px solid #23395b;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #F0F4F8;
+    background: #f0f4f8;
+}
+
+/* Mobilon kisebb cellák, betűméret */
+@media (max-width: 767.98px) {
+
+    .time-slot,
+    .hour-cell {
+        height: 40px;
+        font-size: 0.85rem;
+    }
+
+    .schedule-header {
+        font-size: 1.25rem;
+    }
 }
 </style>
   

@@ -84,7 +84,7 @@ export default {
   methods: {
     switchComponent(name) {
       this.currentComponent = name;
-      this.isSidebarOpen = false; // auto-close on mobile
+      this.isSidebarOpen = false;
     },
     toggleSidebar() {
       this.isSidebarOpen = !this.isSidebarOpen;

@@ -2,38 +2,36 @@
     <div class="schedule-container">
         <div class="row">
             <!-- Naptár bal oldali rész -->
-            <div class="col-9">
+            <div class="col-md-9 col-12">
                 <h2 class="schedule-header">Heti időbeosztás</h2>
+
+                <!-- Heti navigáció -->
                 <div class="container" style="margin: 0;">
-                    <div class="row d-flex justify-content-between">
-                        <div class="col-4 d-flex justify-content-start">
-                            <button class="btn btn-primary" @click="prevWeek">
-                                Előző hét
-                            </button>
+                    <div class="row d-flex justify-content-between flex-wrap align-items-center mb-3">
+                        <div class="col-auto p-1">
+                            <button class="btn btn-primary w-100" @click="prevWeek">Előző hét</button>
                         </div>
-                        <div class="col-4 d-flex justify-content-center">
+                        <div class="col-auto p-1 text-center">
                             <span>{{ weekDisplay }}</span>
                         </div>
-                        <div class="col-4 d-flex justify-content-end">
-                            <button class="btn btn-primary" @click="nextWeek">
-                                Következő hét
-                            </button>
+                        <div class="col-auto p-1">
+                            <button class="btn btn-primary w-100" @click="nextWeek">Következő hét</button>
                         </div>
                     </div>
                 </div>
-                <!-- A többi tartalom, például a heti naptár grid -->
-                <div class="schedule-grid">
+
+                <!-- Heti naptár grid -->
+                <div class="schedule-grid overflow-auto">
                     <div class="time-column" style="margin-top: auto;">
                         <div v-for="slot in timeSlots" :key="slot.time" class="time-slot">
-                            {{ slot.time }} - {{ slot.endTime }}
+                            {{ slot.time }}-{{ slot.endTime }}
                         </div>
                     </div>
-                    <div class="days-column">
+                    <div class="days-column d-flex">
                         <div v-for="day in days" :key="day" class="day-column">
-                            <h3>{{ day }}</h3>
+                            <h3 class="day-header">{{ day }}</h3>
                             <div v-for="slot in timeSlots" :key="slot.time" class="hour-cell"
                                 @click="openModal(day, slot.time, slot.endTime)">
-                                <!-- Kilistázzuk az adott nap és időponthoz tartozó eseményeket -->
                                 <div v-for="event in getEvents(day, slot.time)" :key="event.id" class="event-text">
                                     {{ truncateText(event.title, 10) }}
                                 </div>
@@ -42,16 +40,15 @@
                     </div>
                 </div>
             </div>
-            <!-- Egyéb oszlopok -->
-            <div class="col-3">
+
+            <!-- Heti programok -->
+            <div class="col-md-3 col-12 mt-4 mt-md-0">
                 <h2 class="schedule-header">Heti programok</h2>
-                <div class="events-list" v-if="events && events.length">
-                    <ul>
-                        <li v-for="e in events" :key="e.id" class="event-item">
-                            <div class="event-card">
-                                <div class="event-time">
-                                    {{ e.day }} - {{ e.time }} - {{ e.endTime }}
-                                </div>
+                <div class="events-list" v-if="events.length">
+                    <ul class="list-unstyled">
+                        <li v-for="e in events" :key="e.id" class="event-item mb-2">
+                            <div class="event-card p-2">
+                                <div class="event-time">{{ e.day }} - {{ e.time }} - {{ e.endTime }}</div>
                                 <div class="event-title">{{ e.title }}</div>
                             </div>
                         </li>
@@ -61,7 +58,6 @@
             </div>
         </div>
 
-        <!-- Modal, ha szükséges -->
         <div v-if="showModal" class="modal-overlay">
             <div class="modal-box">
                 <div class="modal-header">
@@ -79,6 +75,9 @@
         </div>
     </div>
 </template>
+
+
+
   
 <script>
 import axios from 'axios';
@@ -147,12 +146,12 @@ export default {
                 .then(response => {
                     const hunDays = ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"];
                     this.events = response.data.map(event => {
-                        const dateObj = new Date(event.day);      
+                        const dateObj = new Date(event.day);
                         const dayName = hunDays[dateObj.getDay()];
                         return {
                             ...event,
-                            date: event.day,          
-                            dayName,                  
+                            date: event.day,
+                            dayName,
                             time: event.time?.slice(0, 5) ?? "",
                             endTime: event.end_time?.slice(0, 5) ?? ""
                         };
@@ -429,6 +428,7 @@ function formatDate(date) {
     color: #1E3A8A;
     font-weight: bold;
     background: #E3E8F0;
+    
 }
 
 .days-column {
