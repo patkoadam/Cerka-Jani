@@ -48,12 +48,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/class-groups',                          [ClassGroupController::class, 'index']);
     Route::post('/class-groups',                          [ClassGroupController::class, 'store']);
 
-    // Osztályhoz tartozó diákok kezelése
     Route::get('/class-groups/{classGroup}/students',    [ClassGroupController::class, 'students']);
     Route::post('/class-groups/{classGroup}/students',    [ClassGroupController::class, 'addStudent']);
     Route::delete('/class-groups/{classGroup}/students/{user}', [ClassGroupController::class, 'removeStudent']);
 
-    // Diákok keresése név vagy email alapján
     Route::get('/students',                              [UserController::class, 'index']);
 
 

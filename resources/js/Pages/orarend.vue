@@ -1,11 +1,6 @@
 <template>
     <div class="schedule-container">
-        <h2 class="schedule-header">Saját tanórarendem</h2>
-        <div class="d-flex justify-content-between mb-3">
-            <button @click="prevWeek" class="btn btn-secondary">Előző hét</button>
-            <span>{{ weekDisplay }}</span>
-            <button @click="nextWeek" class="btn btn-secondary">Következő hét</button>
-        </div>
+        <h2 class="schedule-header">Saját tanórarended</h2>
 
         <div v-if="assignments.length" class="schedule-grid">
             <!-- időoszlop -->
@@ -90,17 +85,6 @@ export default {
         assigned(day, time) {
             return this.assignments.find(a => a.dayName === day && a.time === time) || null;
         },
-
-        prevWeek() {
-            this.currentMonday = this.addDays(this.currentMonday, -7);
-            this.loadAssignments();
-        },
-        nextWeek() {
-            this.currentMonday = this.addDays(this.currentMonday, 7);
-            this.loadAssignments();
-        },
-
-        // segédfüggvények
         getMonday(d) {
             const date = new Date(d);
             const day = date.getDay();
