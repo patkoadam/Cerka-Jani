@@ -1,4 +1,5 @@
 <template>
+<div id="hatter"style="height: 100%;">
     <div class="class-groups-container">
         <h2>Osztályok</h2>
 
@@ -58,6 +59,7 @@
             </div>
         </div>
     </div>
+</div>
 </template>
   
 <script>
@@ -170,6 +172,9 @@ export default {
 </script>
   
 <style scoped>
+#hatter{
+  background: linear-gradient(to bottom, #ffffff, #3d79e7);
+}
 .class-groups-container {
     padding: 1rem;
 }

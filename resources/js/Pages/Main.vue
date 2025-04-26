@@ -8,24 +8,15 @@
       <div class="text-center mb-3">
         <span class="badge bg-light text-dark p-2">{{ isTeacher ? 'Tanári Felület' : 'Diák Felület' }}</span>
       </div>
-      <ul v-if="isTeacher">
-        <li @click="switchComponent('kezdolap')">Kezdőlap</li>
-        <li @click="switchComponent('naptar')">Naptár</li>
-        <li @click="switchComponent('Tosztaly')">Osztályok</li>
-        <li @click="switchComponent('Torarend')">Órarend</li>
-        <li @click="switchComponent('Tjegyek')">Jegyek</li>
-        <li @click="switchComponent('profile')">Profil</li>
-        <li @click="logout()">Kijelentkezés</li>
-      </ul>
-      <ul v-else>
-        <li @click="switchComponent('kezdolap')">Kezdőlap</li>
-        <li @click="switchComponent('naptar')">Naptár</li>
-        <li @click="switchComponent('osztaly')">Osztály</li>
-        <li @click="switchComponent('orarend')">Órarend</li>
-        <li @click="switchComponent('jegyek')">Jegyek</li>
-        <li @click="switchComponent('profile')">Profil</li>
-        <li @click="logout()">Kijelentkezés</li>
-      </ul>
+      <ul>
+          <li @click="switchComponent('kezdolap')" :class="{ active: activeComponent === 'kezdolap' }">Kezdőlap</li>
+          <li @click="switchComponent('naptar')" :class="{ active: activeComponent === 'naptar' }">Naptár</li>
+          <li @click="switchComponent(isTeacher ? 'Tosztaly' : 'osztaly')" :class="{ active: activeComponent === (isTeacher ? 'Tosztaly' : 'osztaly') }">Osztályok</li>
+          <li @click="switchComponent(isTeacher ? 'Torarend' : 'orarend')" :class="{ active: activeComponent === (isTeacher ? 'Torarend' : 'orarend') }">Órarend</li>
+          <li @click="switchComponent(isTeacher ? 'Tjegyek' : 'jegyek')" :class="{ active: activeComponent === (isTeacher ? 'Tjegyek' : 'jegyek') }">Jegyek</li>
+          <li @click="switchComponent('profile')" :class="{ active: activeComponent === 'edit-teacher' || activeComponent === 'edit-student' }">Profil</li>
+          <li @click="Logout()">Kijelentkezés</li>
+        </ul>
     </nav>
 
     <!-- Content -->
@@ -34,8 +25,12 @@
       <button class="sidebar-toggle" @click="toggleSidebar" aria-label="Toggle menu">
         ☰
       </button>
-
-      <component :is="currentComponent" />
+      <component
+          :is="currentComponent"
+          :user="!isTeacher ? $page.props.authUser : undefined"
+          :teacher="isTeacher ? $page.props.authUser : undefined"
+          :status="$page.props.status"
+        />
     </div>
   </div>
 </template>
@@ -43,7 +38,6 @@
 <script>
 import axios from 'axios';
 import naptar from '/resources/js/Pages/naptar.vue';
-import profile from '/resources/js/Pages/profile.vue';
 import kezdolap from '/resources/js/Pages/kezdolap.vue';
 import jegyek from '/resources/js/Pages/jegyek.vue';
 import orarend from '/resources/js/Pages/orarend.vue';
@@ -51,12 +45,13 @@ import osztaly from '/resources/js/Pages/osztaly.vue';
 import Torarend from '/resources/js/Pages/Torarend.vue';
 import Tjegyek from '/resources/js/Pages/Tjegyek.vue';
 import Tosztaly from '/resources/js/Pages/Tosztaly.vue';
+import EditTeacher from "/resources/js/Pages/Profile/EditTeacher.vue";
+import EditStudent from "/resources/js/Pages/Profile/EditStudent.vue";
 
 export default {
   name: 'Main',
   components: {
     naptar,
-    profile,
     kezdolap,
     jegyek,
     orarend,
@@ -64,6 +59,8 @@ export default {
     Torarend,
     Tjegyek,
     Tosztaly,
+    'edit-teacher': EditTeacher,
+    'edit-student': EditStudent,
   },
   data() {
     return {
@@ -72,23 +69,50 @@ export default {
       isSidebarOpen: false,
     };
   },
+  mounted() {
+    fetch("http://localhost:8000/roles")
+      .then(response => response.json())
+      .then(data => {
+        this.role = data;
+      });
+  },
   computed: {
     userRole() {
       let roleData = this.$page.props.auth?.user?.role;
-      if (!roleData && this.roleList.length) {
+      if (!roleData && this.roleList.length > 0) {
         roleData = this.roleList.find(r => r.id === this.$page.props.auth.user.role_id);
       }
-      return roleData?.name || '';
+      return roleData ? roleData.name : "";
     },
     isTeacher() {
-      return this.userRole === 'Tanár';
+      return this.userRole === "Tanár";
     },
+    authUser() {
+      return this.$page.props.authUser;
+    },
+    status() {
+      return this.$page.props.status;
+    },
+    classGroupId() {
+      return this.$page.props.classGroupId;
+    },
+    activeComponent() {
+    return this.currentComponent;
+  },
   },
   methods: {
-    switchComponent(name) {
-      this.currentComponent = name;
-      this.isSidebarOpen = false;
+    switchComponent(componentName) {
+      if (componentName === "profile") {
+        this.currentComponent = this.isTeacher ? "edit-teacher" : "edit-student";
+      } else {
+        this.currentComponent = componentName;
+      }
+
+      if (window.innerWidth <= 768) {
+        this.isSidebarOpen = false;
+      }
     },
+     
     toggleSidebar() {
       this.isSidebarOpen = !this.isSidebarOpen;
     },
@@ -112,6 +136,19 @@ export default {
 </script>
 
 <style scoped>
+.sidebar li {
+  transition: all 0.3s ease;
+}
+
+.sidebar li:hover {
+  transform: translateX(5px);
+}
+.sidebar li.active {
+  background: #044ff0; /* kicsit világosabb kék, hogy kiemelkedjen */
+  font-weight: bold;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(79, 70, 229, 0.6);
+}
 /* Base layout */
 .main-container {
   display: flex;
@@ -179,6 +216,7 @@ export default {
   border: none;
   color: #1E3A8A;
   cursor: pointer;
+  z-index: 1100;
 }
 
 /* Responsive adjustments */

@@ -16,6 +16,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'address',
         'birth',
         'contact',
         'student_card',
@@ -57,4 +58,5 @@ class User extends Authenticatable
         return $this->belongsToMany(ClassGroup::class, 'class_group_student', 'user_id', 'class_group_id')
             ->withTimestamps();
     }
+    
 }

@@ -1,4 +1,5 @@
 <template>
+  <div  id="hatter" style="height: 100%;">
     <div class="student-classmates container py-4">
       <h2>Osztálytársak</h2>
       <ul class="list-group">
@@ -10,6 +11,7 @@
         </li>
       </ul>
     </div>
+  </div>
   </template>
   
   <script>
@@ -32,6 +34,9 @@
   </script>
   
   <style scoped>
+  #hatter{
+  background: linear-gradient(to bottom, #ffffff, #3d79e7);
+}
   .student-classmates h2 {
     margin-bottom: 1rem;
   }

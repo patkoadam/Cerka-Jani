@@ -57,7 +57,6 @@
                             </button>
                         </li>
                     </ul>
-                    {{ this.events }}
                 </div>
                 <p v-else>Nincsenek események.</p>
             </div>

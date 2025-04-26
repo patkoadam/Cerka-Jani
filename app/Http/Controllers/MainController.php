@@ -13,12 +13,12 @@ class MainController extends Controller
     {
         $user = Auth::user();
     
-        // Tanár első osztálycsoportjának ID‑je
         $classGroup = ClassGroup::where('teacher_id', $user->id)->first();
     
         return Inertia::render('Main', [
-            'authUser'     => $user,
-            'classGroupId' => $classGroup?->id,  // null, ha még nincs létrehozva
+            'authUser'     => $user->fresh(),
+            'classGroupId' => $classGroup?->id,
+            'status'       => session('status'),
         ]);
     }
 }

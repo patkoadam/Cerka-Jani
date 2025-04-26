@@ -1,4 +1,5 @@
 <template>
+  <div id="hatter" style="height: 100%;">
   <div class="grades-page">
     <h2>Jegyek kezelése</h2>
 
@@ -110,6 +111,7 @@
       Kérlek, válassz ki egy osztályt a jegyek megtekintéséhez.
     </p>
   </div>
+</div>
 </template>
 
 <script>
@@ -203,6 +205,9 @@ export default {
 </script>
 
 <style scoped>
+#hatter{
+  background: linear-gradient(to bottom, #ffffff, #3d79e7);
+}
 .grades-page {
   padding: 20px;
 }

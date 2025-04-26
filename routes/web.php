@@ -20,8 +20,10 @@ use App\Http\Controllers\StudentScheduleController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UzenetController;
+use App\Http\Controllers\TeacherProfileController;
+use App\Http\Controllers\StudentProfileController;
 use Inertia\Inertia;
-
+use Illuminate\Http\Request;
 
 
 Route::middleware('auth')->group(function () {
@@ -83,6 +85,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile',   [DataController::class, 'store']);
 
     Route::delete('/events/{id}', [NaptarController::class, 'destroy']);
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/teacher/profile', [TeacherProfileController::class, 'edit'])->name('teacher.profile.edit');
+    Route::put('/teacher/profile', [TeacherProfileController::class, 'update'])->name('teacher.profile.update');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/student/profile', [StudentProfileController::class, 'edit'])->name('student.profile.edit');
+    Route::put('/student/profile', [StudentProfileController::class, 'update'])->name('student.profile.update');
 });
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])

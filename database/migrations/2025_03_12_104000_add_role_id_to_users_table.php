@@ -17,6 +17,7 @@ return new class extends Migration {
                     ->nullable()
                     ->constrained('roles')
                     ->onDelete('restrict');
+                $table->string('address')->nullable();
                 $table->date('birth')->nullable();
                 $table->string('contact')->nullable();
                 $table->string('student_card')->nullable();

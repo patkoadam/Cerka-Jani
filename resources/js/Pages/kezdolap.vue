@@ -1,4 +1,5 @@
 <template>
+    <div id="hatter" style="height: 100%;">
     <section>
         <div class="bg-custom d-flex flex-column justify-content-center align-items-center fade-in"
             style="height: 420px; gap: 5px;">
@@ -117,8 +118,12 @@
     <svg viewBox="0 0 1440 320">
         <path fill="#1E3A8A" fill-opacity="1" d="M0,160L1440,32L1440,320L0,320Z"></path>
     </svg>
+</div>
 </template>
 <style scoped>
+  #hatter{
+  background: linear-gradient(to bottom, #ffffff, #3d79e7);
+}
 .bg-custom {
     background-color: #1E3A8A;
 }

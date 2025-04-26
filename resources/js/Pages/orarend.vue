@@ -1,4 +1,5 @@
 <template>
+    <div id="hatter" style="height: 100%;">
     <div class="schedule-container">
         <h2 class="schedule-header">Saját tanórarended</h2>
 
@@ -26,6 +27,7 @@
 
         <p v-else class="text-muted">Nincs órarend ehhez a héthez.</p>
     </div>
+</div>
 </template>
   
 <script>
@@ -99,6 +101,9 @@ export default {
 </script>
   
 <style scoped>
+  #hatter{
+  background: linear-gradient(to bottom, #ffffff, #3d79e7);
+}
 .schedule-container {
     background: #fff;
     border-radius: 10px;

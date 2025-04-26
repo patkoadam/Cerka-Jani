@@ -1,4 +1,5 @@
 <template>
+    <div id="hatter"style="height: 100%;">
     <div class="schedule-container">
 
         <!-- 0) OSZTÁLYVÁLASZTÓ legördülő -->
@@ -62,7 +63,8 @@
         </div>
 
     </div>
-</template>
+</div>
+    </template>
   
 <script>
 import axios from 'axios';
@@ -234,6 +236,9 @@ export default {
 </script>
 
 <style scoped>
+#hatter{
+  background: linear-gradient(to bottom, #ffffff, #3d79e7);
+}
 .schedule-container {
     background: #fff;
     border-radius: 10px;
