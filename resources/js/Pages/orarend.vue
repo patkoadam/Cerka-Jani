@@ -133,9 +133,10 @@ export default {
 
 /* Időoszlop */
 .time-column {
-    width: 90px;
+    width: 150px;
     display: flex;
     flex-direction: column;
+    margin-top: auto;
 }
 
 .time-slot {
@@ -156,6 +157,7 @@ export default {
 
 .day-column {
     min-width: 120px;
+    width: 280px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -183,6 +185,15 @@ export default {
     .hour-cell {
         height: 40px;
         font-size: 0.85rem;
+    }
+    .day-column
+    {
+        width: auto;
+    }
+
+    .time-column
+    {
+        width: auto;
     }
 
     .schedule-header {

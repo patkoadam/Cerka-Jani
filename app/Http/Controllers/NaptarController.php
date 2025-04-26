@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class NaptarController extends Controller
@@ -23,5 +24,18 @@ class NaptarController extends Controller
 
         $events = $query->get();
         return response()->json($events);
+    }
+
+    public function destroy($id)
+    {
+        // opcionálisan ellenőrizheted, hogy az esemény valóban a userhez tartozik:
+        $event = Event::where('user_id', Auth::id())
+            ->findOrFail($id);
+
+        $event->delete();
+
+        return response()->json([
+            'message' => 'Esemény sikeresen törölve.',
+        ]);
     }
 }

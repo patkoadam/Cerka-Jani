@@ -5,6 +5,9 @@
       <div class="logo-container">
         <img src="/images/cerka.png" alt="Cerka logo">
       </div>
+      <div class="text-center mb-3">
+        <span class="badge bg-light text-dark p-2">{{ isTeacher ? 'Tanári Felület' : 'Diák Felület' }}</span>
+      </div>
       <ul v-if="isTeacher">
         <li @click="switchComponent('kezdolap')">Kezdőlap</li>
         <li @click="switchComponent('naptar')">Naptár</li>
@@ -205,4 +208,5 @@ export default {
   .sidebar-toggle {
     display: block;
   }
-}</style>
+}
+</style>

@@ -46,11 +46,15 @@
                 <h2 class="schedule-header">Heti programok</h2>
                 <div class="events-list" v-if="events.length">
                     <ul class="list-unstyled">
-                        <li v-for="e in events" :key="e.id" class="event-item mb-2">
-                            <div class="event-card p-2">
-                                <div class="event-time">{{ e.day }} - {{ e.time }} - {{ e.endTime }}</div>
+                        <li v-for="e in events" :key="e.id"
+                            class="event-item mb-2 d-flex align-items-center justify-content-between">
+                            <div class="event-card p-2 flex-grow-1 me-2">
+                                <div class="event-time">{{ e.day }} – {{ e.time }} – {{ e.endTime }}</div>
                                 <div class="event-title">{{ e.title }}</div>
                             </div>
+                            <button class="btn btn-sm btn-danger" @click="deleteEvent(e.id)">
+                                Törlés
+                            </button>
                         </li>
                     </ul>
                 </div>
@@ -122,6 +126,18 @@ export default {
         },
     },
     methods: {
+        async deleteEvent(id) {
+            if (!confirm('Biztosan törlöd ezt az eseményt?')) {
+                return;
+            }
+            try {
+                await axios.delete(`http://localhost:8000/events/${id}`);
+                this.fetchEvents();
+            } catch (err) {
+                console.error('Törlés sikertelen:', err);
+                alert('Hiba történt a törlés során.');
+            }
+        },
         prevWeek() {
             const newMon = new Date(this.currentMonday)
             newMon.setDate(newMon.getDate() - 7)
@@ -428,7 +444,7 @@ function formatDate(date) {
     color: #1E3A8A;
     font-weight: bold;
     background: #E3E8F0;
-    
+
 }
 
 .days-column {

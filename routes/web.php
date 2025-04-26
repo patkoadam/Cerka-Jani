@@ -52,10 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/class-groups/{classGroup}/students',    [ClassGroupController::class, 'addStudent']);
     Route::delete('/class-groups/{classGroup}/students/{user}', [ClassGroupController::class, 'removeStudent']);
 
-    Route::get('/students',                              [UserController::class, 'index']);
-
-
-
+    Route::get('/students', [UserController::class, 'index']);
 
     Route::get('/subjects', [SubjectController::class, 'index'])
         ->name('subjects.index');
@@ -80,6 +77,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     Route::get('/self/classmates', [ClassGroupController::class, 'selfStudents']);
+
+
+    Route::get('/profile',   [DataController::class, 'indexUser']);
+    Route::put('/profile',   [DataController::class, 'store']);
+
+    Route::delete('/events/{id}', [NaptarController::class, 'destroy']);
 });
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
