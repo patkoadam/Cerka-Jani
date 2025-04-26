@@ -57,6 +57,7 @@
                             </button>
                         </li>
                     </ul>
+                    {{ this.events }}
                 </div>
                 <p v-else>Nincsenek események.</p>
             </div>
@@ -108,7 +109,7 @@ export default {
                 { time: "17:50", endTime: "18:30" },
                 { time: "18:40", endTime: "19:20" }
             ],
-            events: [], // A szervertől érkező események tömbje
+            events: [],
             showModal: false,
             newEventTitle: "",
             selectedDay: "",
@@ -205,16 +206,22 @@ export default {
             this.closeModal();
         },
         getEvents(day, time) {
-            const start = this.currentMonday.getTime();
-            const endDate = new Date(this.currentMonday);
-            endDate.setDate(endDate.getDate() + 6);
-            const end = endDate.getTime();
+            // hétfő éjfélre állítjuk
+            const monday = new Date(this.currentMonday);
+            monday.setHours(0, 0, 0, 0);
+            const startTs = monday.getTime();
+
+            // vasárnap 23:59:59.999-re állítjuk
+            const sunday = new Date(this.currentMonday);
+            sunday.setDate(sunday.getDate() + 6);
+            sunday.setHours(23, 59, 59, 999);
+            const endTs = sunday.getTime();
 
             return this.events.filter(evt => {
-                const d = new Date(evt.date).getTime();
+                const evtTs = new Date(evt.date).getTime();
                 return (
-                    d >= start &&
-                    d <= end &&
+                    evtTs >= startTs &&
+                    evtTs <= endTs &&
                     evt.dayName === day &&
                     evt.time === time
                 );
@@ -231,6 +238,8 @@ export default {
                 "Szerda": 3,
                 "Csütörtök": 4,
                 "Péntek": 5,
+                "Szombat": 6,
+                "Vasárnap": 7
 
             };
             let currentMonday = new Date(this.currentMonday);
