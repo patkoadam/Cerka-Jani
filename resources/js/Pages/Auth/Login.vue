@@ -51,11 +51,6 @@ const submit = () => {
                     autocomplete="current-password" />
                 </div>
 
-                <div class="mb-3 form-check">
-                  <input class="form-check-input" id="remember" type="checkbox" v-model="form.remember" />
-                  <label class="form-check-label" for="remember">Emlékezz rám</label>
-                </div>
-
                 <button type="submit" class="btn btn-primary w-100">
                   Bejelentkezés
                 </button>
@@ -63,6 +58,16 @@ const submit = () => {
                 <div class="text-center mt-3">
                   <span>Nincs fiókod?</span>
                   <Link :href="route('register')" class="btn btn-link">Regisztráció</Link>
+                </div>
+
+                <div v-if="form.errors.email" class="alert mt-3"
+                  :class="{ 'alert-success': success, 'alert-danger': !success }">
+                  Helytelen e-mail-cím vagy jelszó.
+                </div>
+
+                <div v-if="form.errors.password" class="alert mt-3"
+                  :class="{ 'alert-success': success, 'alert-danger': !success }">
+                  Helytelen e-mail-cím vagy jelszó.
                 </div>
               </form>
             </div>

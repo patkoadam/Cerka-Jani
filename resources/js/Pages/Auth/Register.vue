@@ -71,8 +71,8 @@ const submit = () => {
       <div class="mt-2 text-center">
         <a href="login">Már van fiókom.</a>
       </div>
-      <div v-if="message" class="alert mt-3" :class="{ 'alert-success': success, 'alert-danger': !success }">
-        {{ message }}
+      <div v-if="form.errors.password" class="alert mt-3" :class="{ 'alert-success': success, 'alert-danger': !success }">
+        {{ form.errors.password }}
       </div>
     </form>
   </div>

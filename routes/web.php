@@ -65,21 +65,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/class-groups', [ClassGroupController::class, 'index']);
     Route::get('/class-groups', [ClassGroupController::class, 'indexForTeacher']);
 
-
-
-
     Route::get('/self/schedule', [ScheduleController::class, 'selfSchedule']);
-
-
-
 
     Route::get('/grades', [GradeController::class, 'index']);
     Route::post('/grades', [GradeController::class, 'store']);
     Route::get('/self/grades', [GradeController::class, 'selfIndex']);
 
-
     Route::get('/self/classmates', [ClassGroupController::class, 'selfStudents']);
-
 
     Route::get('/profile',   [DataController::class, 'indexUser']);
     Route::put('/profile',   [DataController::class, 'store']);

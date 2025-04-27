@@ -116,7 +116,7 @@ export default {
     toggleSidebar() {
       this.isSidebarOpen = !this.isSidebarOpen;
     },
-    logout() {
+    Logout() {
       delete axios.defaults.headers.common['Authorization'];
       this.$inertia.post('/logout', {}, { preserveState: true });
     },
